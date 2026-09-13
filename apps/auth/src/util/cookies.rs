@@ -3,7 +3,7 @@ use axum_extra::extract::cookie::{Cookie, SameSite};
 
 use crate::models::domain::{Token, TokenPairPublic};
 
-pub async fn create_cookies(jar: CookieJar, pair: &TokenPairPublic) -> CookieJar {
+pub async fn create_cookies(jar: CookieJar, pair: TokenPairPublic) -> CookieJar {
     let access_cookie = Cookie::build(("access_token", pair.access_token.token.clone()))
         .http_only(true)
         .secure(true)

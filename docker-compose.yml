@@ -21,10 +21,10 @@ services:
     ports:
       - "7005:7005"
     env_file:
-      - ./apps/auth/.env
+      - ./apps/auth/.env.local
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "ping -c 1 -W 1 localhost:7005 || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:7005/health | grep -q 'running' || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 5
