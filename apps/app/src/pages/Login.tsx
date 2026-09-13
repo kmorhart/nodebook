@@ -1,6 +1,6 @@
 import { useState } from "react";
-import React from 'react'
-
+import React from 'react';
+import { CONFIG } from "../utils/config";
 
 export default function Login() {
     const [identifier, setIdentifier] = useState('');
@@ -18,8 +18,9 @@ export default function Login() {
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://localhost:7005/login', {
+            const response = await fetch(CONFIG.AUTH_URL + '/login', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -32,11 +33,12 @@ export default function Login() {
             const data = await response.json();
 
             if (!response.ok) {
-            throw new Error(data.message || 'Something went wrong. Please try again.');
+                throw new Error(data.message || 'Something went wrong. Please try again.');
             }
 
-        } catch (error) {
-            setMessage('Something went wrong. Please try again.');
+
+        } catch (error: Error | any) {
+            setMessage(error.message || 'Something went wrong. Please try again.');
         } finally {
             setIsLoading(false);
         }
