@@ -6,8 +6,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "7004:7004"
-    env_file:
-      - ./apps/app/.env.local
     restart: always
     depends_on:
       auth:
