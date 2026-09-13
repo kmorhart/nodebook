@@ -1,0 +1,56 @@
+@base_url=http://localhost:7005
+@access_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJlNGMwYjYzMC04MGY1LTQ0ODQtODMxMC1hODgzODIwYWRkNjMiLCJzdWIiOiIxMjdkNDMxNi00OTA4LTQxOWQtYWEzNS0wYTMzMzFhMTNmYTQiLCJleHAiOjE3ODg0MDUyOTUsImlhdCI6MTc4ODQwMzQ5NSwidG9rZW5fdHlwZSI6ImFjY2VzcyJ9.cVjvD2h5jQfiiPClMwblYgVoP9ZvLRzoBMESbDetse0
+@refresh_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI2NzY3NTc2YS04OGIxLTQwNjQtOGEyZi00OGE1OWQ1ODIwYzkiLCJzdWIiOiIxMjdkNDMxNi00OTA4LTQxOWQtYWEzNS0wYTMzMzFhMTNmYTQiLCJleHAiOjE3ODk2MTMwOTUsImlhdCI6MTc4ODQwMzQ5NSwidG9rZW5fdHlwZSI6InJlZnJlc2gifQ.UswYG7AJrrnORSp9yPxi3P6C09CvAzssM4gPMCS3OPs
+
+POST {{base_url}}/register
+Content-Type: application/json
+
+{
+    "email": "kevin@morhart.dev",
+    "username": "kevin",
+    "password": "password123"
+}
+
+###
+
+POST {{base_url}}/login
+Content-Type: application/json
+
+{
+    "identifier": "kevin",
+    "password": "password123"
+}
+
+###
+
+GET {{base_url}}/me
+Content-Type: application/json
+Cookie: access_token={{access_token}}
+Cookie: refresh_token={{refresh_token}}
+
+###
+
+POST {{base_url}}/logout
+Content-Type: application/json
+Cookie: access_token={{access_token}}
+Cookie: refresh_token={{refresh_token}}
+
+###
+
+POST  {{base_url}}/refresh
+Content-Type: application/json
+Cookie: refresh_token={{refresh_token}}
+
+###
+
+GET {{base_url}}/
+Content-Type: application/json
+
+{}
+
+###
+
+POST  {{base_url}}/test
+Content-Type: application/json
+Cookie: access_token={{access_token}}
+Cookie: refresh_token={{refresh_token}}

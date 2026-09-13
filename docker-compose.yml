@@ -1,0 +1,75 @@
+services:
+  app:
+    container_name: app
+    build:
+      context: ./apps/app/
+      dockerfile: Dockerfile
+    ports:
+      - "7004:7004"
+    env_file:
+      - ./apps/app/.env.local
+    restart: always
+    depends_on:
+      auth:
+        condition: service_healthy
+  
+  auth:
+    container_name: auth
+    build:
+      context: ./apps/auth/
+      dockerfile: Dockerfile
+    ports:
+      - "7005:7005"
+    env_file:
+      - ./apps/auth/.env
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "ping -c 1 -W 1 localhost:7005 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    depends_on:
+      auth_db:
+        condition: service_healthy
+      auth_cache:
+        condition: service_healthy
+  auth_cache:
+    image: redis:7.4-alpine
+    container_name: auth_cache
+    env_file:
+      - ./apps/auth/.env.local
+    restart: always
+    ports:
+      - "7006:6379"
+    volumes:
+      - auth_redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+  auth_db:
+    image: postgres:18
+    container_name: auth_db
+    env_file:
+      - ./apps/auth/.env.local
+    restart: always
+    ports:
+      - "7007:5432"
+    volumes:
+      - auth_postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+  
+
+volumes:
+  auth_postgres:
+    driver: local
+  auth_redis:
+    driver: local
