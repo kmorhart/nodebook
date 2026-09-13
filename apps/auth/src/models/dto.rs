@@ -2,28 +2,32 @@ use axum::{Json, extract::{FromRequest, Request}, http::StatusCode};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_with::skip_serializing_none;
 use validator::Validate;
-use async_trait::async_trait;
 
 use crate::errors::AppError;
 
-
 pub struct ValidatedJson<T>(pub T);
 
-#[async_trait]
-impl<S, T> FromRequest<S> for ValidatedJson<T>
+impl<T, S> FromRequest<S> for ValidatedJson<T>
 where
     T: DeserializeOwned + Validate,
     S: Send + Sync,
 {
-    type Rejection = (StatusCode, String);
+    type Rejection = (StatusCode, Json<ApiResponse<()>>);
 
-    async fn from_request(req: Request, state: &S) -> Result<Self, Self::Rejection> {
+    async fn from_request(req: Request, state: &S) -> Result<Self, (StatusCode, Json<ApiResponse<()>>)> {
         let Json(value) = Json::<T>::from_request(req, state)
             .await
-            .map_err(|err| (StatusCode::BAD_REQUEST, err.to_string()))?;
+            .map_err(|e| 
+                (
+                    StatusCode::BAD_REQUEST,
+                    Json(ApiResponse::<()>::err(&AppError::BadRequest("Invalid JSON", Some(e.to_string())))),
+                ))?;
 
-        value.validate().map_err(|err| {
-            (StatusCode::UNPROCESSABLE_ENTITY, err.to_string())
+        value.validate().map_err(|e| {
+            (
+                StatusCode::BAD_REQUEST,
+                Json(ApiResponse::<()>::err(&AppError::BadRequest("Validation failed", Some(e.to_string())))),
+            )
         })?;
 
         Ok(ValidatedJson(value))
@@ -39,7 +43,7 @@ pub struct RegisterRequest {
     pub password: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Validate)]
 pub struct LoginRequest {
     pub identifier: String,
     pub password: String,

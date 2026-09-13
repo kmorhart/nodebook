@@ -13,10 +13,13 @@ RUN --mount=type=cache,target=/sccache \
     --mount=type=cache,target=/usr/local/cargo/registry \
     cargo build --release
 
-
-
 #runtime stage
 FROM debian:bookworm-slim
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 COPY --from=builder /app/target/release/auth .
 EXPOSE 7005

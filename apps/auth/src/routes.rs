@@ -7,7 +7,7 @@ use uuid::Uuid;
 use crate::AppState;
 use crate::errors::AppError;
 use crate::models::db::UserUuid;
-use crate::models::dto::{ ApiResponse, LoginRequest, RegisterRequest };
+use crate::models::dto::{ ApiResponse, LoginRequest, RegisterRequest, ValidatedJson };
 use crate::models::domain::{ UserPublic };
 use crate::services::auth::AuthService;
 use crate::util::cookies::{create_cookies, create_refresh_cookie, remove_cookies};
@@ -16,15 +16,20 @@ pub async fn root() -> &'static str {
     "Auth service is running, please specify a route to access the service."
 }
 
+pub async fn health_handler() -> &'static str {
+    "running"
+}
+
 pub async fn register_handler(
-    jar: CookieJar,
     State(app_state): State<AppState>,
+    jar: CookieJar,
     headers: HeaderMap,
-    Json(payload): Json<RegisterRequest>,
+    ValidatedJson(payload): ValidatedJson<RegisterRequest>,
 ) -> Result<(CookieJar, (StatusCode, Json<ApiResponse<UserPublic>>)), (StatusCode, Json<ApiResponse<()>>)> {
     match AuthService::register(app_state.db, headers, payload).await {
         Ok(data) => {
-            let updated_jar = create_cookies(jar, &data.token_pair).await;
+            let updated_jar = create_cookies(jar, data.token_pair).await;
+            
             Ok((updated_jar, (StatusCode::CREATED, Json(ApiResponse::ok("User registered successfully".to_string(), data.user)))))
         },
         Err(app_error) => Err((app_error.status(), Json(ApiResponse::err(&app_error)))),
@@ -32,15 +37,15 @@ pub async fn register_handler(
 }
 
 pub async fn login_handler(
-    jar: CookieJar,
     State(app_state): State<AppState>,
+    jar: CookieJar,
     headers: HeaderMap,
-    Json(payload): Json<LoginRequest>,
+    ValidatedJson(payload): ValidatedJson<LoginRequest>,
 ) -> Result<(CookieJar, (StatusCode, Json<ApiResponse<UserPublic>>)), (StatusCode, Json<ApiResponse<()>>)> {
     match AuthService::login(app_state.db, headers, payload).await {
         Ok(data) => {
-            let updated_jar = create_cookies(jar, &data.token_pair).await;
-
+            let updated_jar = create_cookies(jar, data.token_pair).await;
+            
             Ok((updated_jar, (StatusCode::CREATED, Json(ApiResponse::ok("User logged in successfully".to_string(), data.user)))))
         },
         Err(app_error) => Err((app_error.status(), Json(ApiResponse::err(&app_error)))),
@@ -48,8 +53,8 @@ pub async fn login_handler(
 }
 
 pub async fn logout_handler(
-    jar: CookieJar,
     State(app_state): State<AppState>,
+    jar: CookieJar,
     _headers: HeaderMap,
     Extension(jti): Extension<Uuid>
 ) -> Result<(CookieJar, (StatusCode, Json<ApiResponse<()>>)), (StatusCode, Json<ApiResponse<()>>)> {
@@ -67,8 +72,8 @@ pub async fn logout_handler(
 }
 
 pub async fn refresh_handler(
-    jar: CookieJar,
     State(app_state): State<AppState>,
+    jar: CookieJar,
     headers: HeaderMap,
 ) -> Result<(CookieJar, (StatusCode, Json<ApiResponse<()>>)), (StatusCode, Json<ApiResponse<()>>)> {
     match AuthService::refresh(app_state.db, headers).await {

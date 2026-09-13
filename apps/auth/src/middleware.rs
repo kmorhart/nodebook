@@ -1,13 +1,13 @@
 use axum::{
     Json, body::Body, extract::State, http::{Request, Response, StatusCode}, middleware::Next, response::IntoResponse,
 };
-use axum_extra::extract::{CookieJar, cookie::{Cookie, SameSite}};
+use axum_extra::extract::{CookieJar};
 use deadpool_redis::redis::cmd;
 
-use crate::{AppState, errors::AppError, models::dto::ApiResponse, services::auth::AuthService, util::tokens::verify_access_token};
+use crate::{AppState, errors::AppError, models::{domain::TokenPairPublic, dto::ApiResponse}, services::auth::AuthService, util::{cookies::{create_cookies, remove_cookies}, tokens::verify_access_token}};
 
 
-const PUBLIC_ROUTES: &[&str] = &["/", "/register", "/login", "/refresh"];
+const PUBLIC_ROUTES: &[&str] = &["/", "/health", "/register", "/login", "/refresh"];
 
 pub async fn auth_middleware(
     State(app_state): State<AppState>,
@@ -49,31 +49,18 @@ pub async fn auth_middleware(
                 .await
                 .map_err(|_| (StatusCode::UNAUTHORIZED, Json(ApiResponse::err(&AppError::Unauthorized("auth.invalid_credentials", None)))))?;
 
-            let access_cookie = Cookie::build(("access_token", token_pair.access_token.token.clone()))
-                .http_only(true)
-                .secure(true)
-                .same_site(SameSite::Strict)
-                .path("/")
-                .build();
-
-            let refresh_cookie = Cookie::build(("refresh_token", token_pair.refresh_token.token.clone()))
-                .http_only(true)
-                .secure(true)
-                .same_site(SameSite::Strict)
-                .path("/refresh")
-                .build();
-
             if path == "/logout" {
-                let updated_jar = jar.clone().remove(Cookie::build(("access_token", "")).build()).remove(Cookie::build(("refresh_token", "")).build());
+                let updated_jar = remove_cookies(jar).await;
                 request.extensions_mut().insert(token_pair.refresh_token.uuid);
                 let response = next.run(request).await;
                 return Ok((updated_jar, response).into_response());
             }
 
+            let updated_jar = create_cookies(jar, TokenPairPublic{..token_pair.clone().into()}).await;
+
             request.extensions_mut().insert(token_pair.refresh_token.subject);
             request.extensions_mut().insert(token_pair.refresh_token.uuid);
-            
-            let updated_jar = jar.clone().add(access_cookie).add(refresh_cookie);
+
             let response = next.run(request).await;
             
             Ok((updated_jar, response).into_response())

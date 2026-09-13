@@ -20,7 +20,7 @@ use tower_http::cors::{AllowOrigin, CorsLayer};
 
 
 use crate::middleware::auth_middleware;
-use crate::routes::{ login_handler, logout_handler, me_handler, refresh_handler, register_handler, root };
+use crate::routes::{ health_handler, login_handler, logout_handler, me_handler, refresh_handler, register_handler, root };
 
 #[derive(Clone)]
 pub struct AppState {
@@ -53,12 +53,13 @@ async fn main() {
         .await
         .expect("Failed to run migrations");
 
-    let frontend_origin = "http://localhost:5173"
+    let frontend_origin = "http://localhost:7004"
         .parse::<http::HeaderValue>()
         .unwrap();
 
     let cors = CorsLayer::new()
         .allow_origin(AllowOrigin::exact(frontend_origin))
+        // .allow_origin(AllowOrigin::any())
         .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE, Method::OPTIONS])
         .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION])
         .allow_credentials(true);
@@ -66,6 +67,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(root))
+        .route("/health", get(health_handler))
         .route("/register", post(register_handler))
         .route("/login", post(login_handler))
         .route("/logout", post(logout_handler))
