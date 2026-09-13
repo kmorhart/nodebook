@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router'
 import ProtectedLayout from '../layouts/ProtectedLayout'
 import { authenticate } from '../utils/authentication'
 import Login from '../pages/Login'
+import Register from '../pages/Register'
 
 export let router = createBrowserRouter([
     {
@@ -9,7 +10,13 @@ export let router = createBrowserRouter([
         children: [
             {
                 path: '/login',
+                middleware: [authenticate],
                 element: <Login />
+            },
+            {
+                path: '/register',
+                middleware: [authenticate],
+                element: <Register />
             },
             {
                 path: 'flows/:flowId',
