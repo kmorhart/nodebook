@@ -1,6 +1,6 @@
 import { useState } from "react";
 import React from 'react';
-import { CONFIG } from "../utils/config";
+import { CONFIG } from "../config/config";
 
 export default function Login() {
     const [identifier, setIdentifier] = useState('');
