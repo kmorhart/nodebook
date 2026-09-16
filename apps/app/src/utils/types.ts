@@ -1,6 +1,6 @@
 
 
-export type User = {
+export type Me = {
     uuid: String;
     username: String;
     email: String;
