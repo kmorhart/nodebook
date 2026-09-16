@@ -24,8 +24,8 @@ pub async fn auth_middleware(
     let access_token = jar
         .get("access_token")
         .map(|c| c.value().to_string())
-        .ok_or_else(|| (StatusCode::UNAUTHORIZED, Json(ApiResponse::err(&AppError::Unauthorized("auth.invalid_credentials", None)))))?;
-    
+        .unwrap_or_default();
+
     match verify_access_token(&access_token) {
         Ok(claims) => {
             let mut connection = app_state.cache.get().await
