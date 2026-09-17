@@ -55,7 +55,6 @@ pub async fn login_handler(
 pub async fn logout_handler(
     State(app_state): State<AppState>,
     jar: CookieJar,
-    _headers: HeaderMap,
     Extension(jti): Extension<Uuid>
 ) -> Result<(CookieJar, (StatusCode, Json<ApiResponse<()>>)), (StatusCode, Json<ApiResponse<()>>)> {
     let updated_jar = remove_cookies(jar).await;
@@ -95,4 +94,10 @@ pub async fn me_handler(
         Ok(user) => Ok((StatusCode::OK, Json(ApiResponse::ok("User retrieved successfully".to_string(), user)))),
         Err(app_error) => Err((app_error.status(), Json(ApiResponse::err(&app_error)))),
     }
+}
+
+pub async fn session_handler(
+    Extension(user_uuid): Extension<UserUuid>
+) -> Result<(StatusCode, Json<ApiResponse<UserUuid>>), (StatusCode, Json<ApiResponse<()>>)> {
+    Ok((StatusCode::OK, Json(ApiResponse::ok("User session retrieved successfully".to_string(), user_uuid))))
 }
