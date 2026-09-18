@@ -1,13 +1,18 @@
 use axum_extra::extract::CookieJar;
 use axum_extra::extract::cookie::{Cookie, SameSite};
+use time::OffsetDateTime;
 
-use crate::models::domain::{Token, TokenPairPublic};
+use crate::models::domain::{TokenPairPublic};
 
 pub async fn create_cookies(jar: CookieJar, pair: TokenPairPublic) -> CookieJar {
+    let access_expiry = OffsetDateTime::from_unix_timestamp(pair.access_token.expires_at.timestamp()).unwrap();
+    let refresh_expiry = OffsetDateTime::from_unix_timestamp(pair.refresh_token.expires_at.timestamp()).unwrap();
+
     let access_cookie = Cookie::build(("access_token", pair.access_token.token.clone()))
         .http_only(true)
         .secure(true)
         .same_site(SameSite::Strict)
+        .expires(access_expiry)
         .path("/")
         .build();
 
@@ -16,20 +21,10 @@ pub async fn create_cookies(jar: CookieJar, pair: TokenPairPublic) -> CookieJar 
         .secure(true)
         .same_site(SameSite::Strict)
         .path("/")
+        .expires(refresh_expiry)
         .build();
 
     jar.add(access_cookie).add(refresh_cookie)
-}
-
-pub async fn create_refresh_cookie(jar: CookieJar, pair: &Token) -> CookieJar {
-    let refresh_cookie = Cookie::build(("refresh_token", pair.token.clone()))
-        .http_only(true)
-        .secure(true)
-        .same_site(SameSite::Strict)
-        .path("/")
-        .build();
-
-    jar.add(refresh_cookie)
 }
 
 pub async fn remove_cookies(jar: CookieJar) -> CookieJar {

@@ -8,9 +8,9 @@ use crate::AppState;
 use crate::errors::AppError;
 use crate::models::db::UserUuid;
 use crate::models::dto::{ ApiResponse, LoginRequest, RegisterRequest, ValidatedJson };
-use crate::models::domain::{ UserPublic };
+use crate::models::domain::{ TokenPairPublic, UserPublic };
 use crate::services::auth::AuthService;
-use crate::util::cookies::{create_cookies, create_refresh_cookie, remove_cookies};
+use crate::util::cookies::{create_cookies, remove_cookies};
 
 pub async fn root() -> &'static str {
     "Auth service is running, please specify a route to access the service."
@@ -77,7 +77,8 @@ pub async fn refresh_handler(
 ) -> Result<(CookieJar, (StatusCode, Json<ApiResponse<()>>)), (StatusCode, Json<ApiResponse<()>>)> {
     match AuthService::refresh(app_state.db, headers).await {
         Ok(data) => {
-            let updated_jar = create_refresh_cookie(jar, &data.refresh_token).await;
+            let token_pair_public: TokenPairPublic = data.clone().into();
+            let updated_jar = create_cookies(jar, token_pair_public).await;
 
             Ok((updated_jar, (StatusCode::CREATED, Json(ApiResponse::ok("Token refreshed successfully".to_string(), ())))))
         },
