@@ -109,3 +109,21 @@ export const meQueryOptions = queryOptions({
   queryFn: fetchMe,
   staleTime: 1000 * 60 * 10,
 })
+
+async function fetchLogout() {
+  const response = await fetch(CONFIG.AUTH_URL + '/logout', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+  })
+
+  if (!response.ok) throw new Error('Not authenticated')
+}
+
+export const logoutMutationOptions = {
+  mutationFn: () => fetchLogout(),
+  onSuccess: () => {
+    queryClient.removeQueries({ queryKey: sessionQueryOptions.queryKey })
+    queryClient.removeQueries({ queryKey: meQueryOptions.queryKey })
+  }
+}
