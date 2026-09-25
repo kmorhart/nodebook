@@ -5,11 +5,14 @@ import { RouterProvider } from 'react-router'
 import { router } from './config/router.tsx'
 import './index.css'
 import { queryClient } from './query/queryClient.ts'
+import { ConfigProvider } from './config/config.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
+    <ConfigProvider>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </ConfigProvider>
   </StrictMode>,
 )
