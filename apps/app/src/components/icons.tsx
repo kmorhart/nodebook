@@ -1,1 +1,1 @@
-export { FilePlus, File } from 'lucide-react'
+export { FilePlus, FileBraces, Save, SavePen, SavePlus, Share2 } from 'lucide-react'
