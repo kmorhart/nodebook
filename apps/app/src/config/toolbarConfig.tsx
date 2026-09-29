@@ -19,7 +19,8 @@ export const TOOLBAR_CONFIG = [
                 name: "Open from File",
                 icon: (config: Config): React.ReactNode => {
                     return <Icons.FileBraces color={config.darkMode ? "#fff" : "#000"} />
-                }
+                },
+                action: () => {}
             },
             {
                 id: "save",
@@ -41,7 +42,8 @@ export const TOOLBAR_CONFIG = [
                 name: "Save As",
                 icon: (config: Config): React.ReactNode => {
                     return <Icons.SavePlus color={config.darkMode ? "#fff" : "#000"} />
-                }
+                },
+                action: () => {}
             },
             {
                 id: "share",
@@ -49,7 +51,8 @@ export const TOOLBAR_CONFIG = [
                 states: ["default"],
                 icon: (config: Config): React.ReactNode => {
                     return <Icons.Share2 color={config.darkMode ? "#fff" : "#000"} />
-                }
+                },
+                action: () => {}
             }
         ]
     },
@@ -63,7 +66,8 @@ export const TOOLBAR_CONFIG = [
                 states: ["available", "unavailable"],
                 icon: (config: Config): React.ReactNode => {
                     return <Icons.Undo color={config.darkMode ? "#fff" : "#000"} />
-                }
+                },
+                action: () => {}
             },
             {
                 id: "redo",
@@ -71,21 +75,24 @@ export const TOOLBAR_CONFIG = [
                 states: ["available", "unavailable"],
                 icon: (config: Config): React.ReactNode => {
                     return <Icons.Redo color={config.darkMode ? "#fff" : "#000"} />
-                }
+                },
+                action: () => {}
             },
             {
                 id: "selectall",
                 name: "Select All",
                 icon: (config: Config): React.ReactNode => {
                     return <Icons.SquareDashed color={config.darkMode ? "#fff" : "#000"} />
-                }
+                },
+                action: () => {}
             },
             {
                 id: "deselect",
                 name: "Deselect",
                 icon: (config: Config): React.ReactNode => {
                     return <Icons.SquareDashedX color={config.darkMode ? "#fff" : "#000"} />
-                }
+                },
+                action: () => {}
             },
             {
                 id: "cut",
@@ -93,7 +100,8 @@ export const TOOLBAR_CONFIG = [
                 states: ["available", "unavailable"],
                 icon: (config: Config): React.ReactNode => {
                     return <Icons.Scissors color={config.darkMode ? "#fff" : "#000"} />
-                }
+                },
+                action: () => {}
             },
             {
                 id: "copy",
@@ -101,7 +109,8 @@ export const TOOLBAR_CONFIG = [
                 states: ["available", "unavailable"],
                 icon: (config: Config): React.ReactNode => {
                     return <Icons.ClipboardCopy color={config.darkMode ? "#fff" : "#000"} />
-                }
+                },
+                action: () => {}
             },
             {
                 id: "paste",
@@ -109,7 +118,8 @@ export const TOOLBAR_CONFIG = [
                 states: ["available", "unavailable"],
                 icon: (config: Config): React.ReactNode => {
                     return <Icons.ClipboardPaste color={config.darkMode ? "#fff" : "#000"} />
-                }
+                },
+                action: () => {}
             },
             {
                 id: "delete",
@@ -117,7 +127,8 @@ export const TOOLBAR_CONFIG = [
                 states: ["available", "unavailable"],
                 icon: (config: Config): React.ReactNode => {
                     return <Icons.X color={config.darkMode ? "#fff" : "#000"} />
-                }
+                },
+                action: () => {}
             },
             {
                 id: "deleteall",
@@ -125,7 +136,8 @@ export const TOOLBAR_CONFIG = [
                 states: ["available", "unavailable"],
                 icon: (config: Config): React.ReactNode => {
                     return <Icons.Trash color={config.darkMode ? "#fff" : "#000"} />
-                }
+                },
+                action: () => {}
             }
         ]
     },
@@ -138,35 +150,40 @@ export const TOOLBAR_CONFIG = [
                 name: "Zoom In",
                 icon: (config: Config): React.ReactNode => {
                     return <Icons.ZoomIn color={config.darkMode ? "#fff" : "#000"} />
-                }
+                },
+                action: () => {}
             },
             {
                 id: "zoomout",
                 name: "Zoom Out",
                 icon: (config: Config): React.ReactNode => {
                     return <Icons.ZoomOut color={config.darkMode ? "#fff" : "#000"} />
-                }
+                },
+                action: () => {}
             },
             {
                 id: "autoalign",
                 name: "Auto Align",
                 icon: (config: Config): React.ReactNode => {
                     return <Icons.LayoutFreeform color={config.darkMode ? "#fff" : "#000"} />
-                }
+                },
+                action: () => {}
             },
             {
                 id: "spline",
                 name: "Spline Connections",
                 icon: (config: Config): React.ReactNode => {
                     return <Icons.Spline color={config.darkMode ? "#fff" : "#000"} />
-                }
+                },
+                action: () => {}
             },
             {
                 id: "highlight",
                 name: "Highlight Connections",
                 icon: (config: Config): React.ReactNode => {
                     return <Icons.Spotlight color={config.darkMode ? "#fff" : "#000"} />
-                }
+                },
+                action: () => {}
             }
         ]
     },
@@ -179,7 +196,8 @@ export const TOOLBAR_CONFIG = [
                 name: "Run Once",
                 icon: (config: Config): React.ReactNode => {
                     return <Icons.Play color={config.darkMode ? "#fff" : "#000"} />
-                }
+                },
+                action: () => {}
             },
             {
                 id: "runcontinuous",
@@ -187,7 +205,8 @@ export const TOOLBAR_CONFIG = [
                 states: ["running", "paused"],
                 icon: (config: Config, state: string): React.ReactNode => {
                     return state === "running" ? <Icons.MonitorPlay color={config.darkMode ? "#fff" : "#000"} /> : <Icons.MonitorPause color={config.darkMode ? "#fff" : "#000"} />
-                }
+                },
+                action: () => {}
             }
         ]
     },
