@@ -17,7 +17,7 @@ function initToolbarState(): ToolbarState {
 }
 
 export default function Toolbar() {
-    const { config, toggleDarkMode } = useConfig();
+    const { config, setToolbarCategory, toggleDarkMode } = useConfig();
     const [toolbarState, setToolbarState] = useState<ToolbarState>(initToolbarState)
 
     return (
@@ -27,7 +27,7 @@ export default function Toolbar() {
             <div className="toolbar-categories">
                 {TOOLBAR_CONFIG.map((category) => (
                     <Fragment key={category.id}>
-                        <button className="toolbar-category" id={category.id}>
+                        <button className="toolbar-category" id={category.id} onClick={() => setToolbarCategory(category.id)}>
                             {category.name}
                         </button>
                     </Fragment>
@@ -36,16 +36,16 @@ export default function Toolbar() {
             <div className="toolbar-pages">
                 {TOOLBAR_CONFIG.map((category) => (
                     <Fragment key={category.id}>
-                        <div className={`toolbar-page`} id={`page-${category.id}`}>
+                        {config.toolbarCategory == category.id && useMemo(() => <div className={`toolbar-page`} id={`page-${category.id}`}>
                             {category.tools.map((tool) => (
                                 <Fragment key={tool.id}>
                                     <button className="toolbar-function" id={`${category.id}-${tool.id}`} onClick={() => tool.action && tool.action(setToolbarState)}>
                                         {tool.name}
-                                        {useMemo(() => tool.icon(config, toolbarState[category.id]?.[tool.id]), [config, toolbarState])}
+                                        {tool.icon(config, toolbarState[category.id]?.[tool.id])}
                                     </button>
                                 </Fragment>
                             ))}
-                        </div>
+                        </div>, [config, toolbarState])}
                     </Fragment>
                 ))}
             </div>
