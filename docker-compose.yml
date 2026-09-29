@@ -10,7 +10,7 @@ services:
     depends_on:
       auth:
         condition: service_healthy
-  
+
   auth:
     container_name: auth
     build:
@@ -24,9 +24,9 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:7005/health | grep -q 'running' || exit 1"]
       interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 1s
     depends_on:
       auth_db:
         condition: service_healthy
@@ -44,10 +44,10 @@ services:
       - auth_redis:/data
     healthcheck:
       test: ["CMD-SHELL", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
+      interval: 15s
+      timeout: 3s
       retries: 5
-      start_period: 5s
+      start_period: 2s
   auth_db:
     image: postgres:18
     container_name: auth_db
@@ -60,11 +60,10 @@ services:
       - auth_postgres:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
-      interval: 5s
+      interval: 30s
       timeout: 5s
-      retries: 5
+      retries: 10
       start_period: 5s
-  
 
 volumes:
   auth_postgres:
