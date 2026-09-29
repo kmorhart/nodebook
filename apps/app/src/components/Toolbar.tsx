@@ -36,7 +36,7 @@ export default function Toolbar() {
             <div className="toolbar-pages">
                 {TOOLBAR_CONFIG.map((category) => (
                     <Fragment key={category.id}>
-                        {config.toolbarCategory == category.id && useMemo(() => <div className={`toolbar-page`} id={`page-${category.id}`}>
+                        { useMemo(() => { return (config.toolbarCategory == category.id &&  <div className={`toolbar-page`} id={`page-${category.id}`}>
                             {category.tools.map((tool) => (
                                 <Fragment key={tool.id}>
                                     <button className="toolbar-function" id={`${category.id}-${tool.id}`} onClick={() => tool.action && tool.action(setToolbarState)}>
@@ -45,7 +45,7 @@ export default function Toolbar() {
                                     </button>
                                 </Fragment>
                             ))}
-                        </div>, [config, toolbarState])}
+                        </div> ) }, [config, toolbarState])}
                     </Fragment>
                 ))}
             </div>

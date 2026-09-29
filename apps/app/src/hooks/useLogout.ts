@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
-import { CONFIG } from '../config/config'
 import { meQueryOptions } from '../query/authQueries'
 
 export function useLogout() {
@@ -9,7 +8,7 @@ export function useLogout() {
 
   return useMutation({
     mutationFn: () =>
-      fetch(CONFIG.AUTH_URL + '/logout', { method: 'POST', credentials: 'include' }),
+      fetch('http://localhost:7005/logout', { method: 'POST', credentials: 'include' }),
     onSuccess: () => {
       queryClient.removeQueries({ queryKey: meQueryOptions.queryKey })
       navigate('/login')
