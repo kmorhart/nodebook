@@ -1,10 +1,12 @@
 export type Config = {
     darkMode: boolean;
+    toolbarCategory?: string;
 }
 
 export type ConfigContextValue = {
   config: Config;
   toggleDarkMode: () => void;
+  setToolbarCategory: (category: string) => void;
   updateConfig: (partial: Partial<Config>) => void;
 };
 

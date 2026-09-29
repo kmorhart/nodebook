@@ -31,11 +31,14 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
     const toggleDarkMode = () =>
         setConfig((prev) => ({ ...prev, darkMode: !prev.darkMode }));
 
+    const setToolbarCategory = (category: string) =>
+        setConfig((prev) => ({ ...prev, toolbarCategory: category }));
+
     const updateConfig = (partial: Partial<Config>) =>
         setConfig((prev) => ({ ...prev, ...partial }));
 
     return (
-        <ConfigContext.Provider value={{ config, toggleDarkMode, updateConfig }}>
+        <ConfigContext.Provider value={{ config, toggleDarkMode, setToolbarCategory, updateConfig }}>
             {children}
         </ConfigContext.Provider>
     );

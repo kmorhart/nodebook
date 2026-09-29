@@ -19,9 +19,9 @@ export let router = createBrowserRouter([
             { middleware: [verifySession], element: <ProtectedLayout />, children: [
                 { path: 'logout', loader: logout, element: <Navigate to="/login" /> },
                 { path: 'new', element: <Canvas /> },
-                { path: 'flows/:flowId', element: <Canvas /> }
+                { path: 'flows/:flowId', element: <Canvas /> },
             ]},
         ]
     },
-    { path: '*', element: <div>any route</div> }
+    { path: '*', element: <Navigate to="/new" /> }
 ])
