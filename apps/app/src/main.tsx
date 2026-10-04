@@ -7,6 +7,10 @@ import './index.css'
 import { queryClient } from './query/queryClient.ts'
 import { ConfigProvider } from './config/config.tsx'
 
+const savedTheme = localStorage.getItem('config') ? (JSON.parse(localStorage.getItem('config')!).darkMode ? 'dark' : 'light') : 'dark';
+
+document.documentElement.setAttribute('data-theme', savedTheme);
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ConfigProvider>
@@ -14,5 +18,5 @@ createRoot(document.getElementById('root')!).render(
         <RouterProvider router={router} />
       </QueryClientProvider>
     </ConfigProvider>
-  </StrictMode>,
+  </StrictMode>
 )
