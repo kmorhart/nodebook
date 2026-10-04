@@ -3,11 +3,13 @@ import type { Config, ConfigContextValue } from './types';
 
 const ConfigContext = createContext<ConfigContextValue | undefined>(undefined);
 
+const prefersDarkMode = (window.matchMedia('(prefers-color-scheme: dark)')).matches;
 
 const STORAGE_KEY = 'config';
-const DEFAULT_CONFIG: Config = { darkMode: true };
+const DEFAULT_CONFIG: Config = { darkMode: prefersDarkMode, toolbarCategory: 'file' };
 
 function loadConfig(): Config {
+    
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
 
@@ -22,14 +24,18 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
         } catch (err) {
-        console.error('Failed to save config:', err);
+            console.error('Failed to save config:', err);
         }
     }, [config]);
 
     const toggleDarkMode = () =>
-        setConfig((prev) => ({ ...prev, darkMode: !prev.darkMode }));
+        setConfig((prev) => {
+            document.documentElement.setAttribute('data-theme', prev.darkMode ? 'light' : 'dark');
+
+            return { ...prev, darkMode: !prev.darkMode };
+        });
 
     const setToolbarCategory = (category: string) =>
         setConfig((prev) => ({ ...prev, toolbarCategory: category }));
