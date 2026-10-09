@@ -32,8 +32,12 @@ pub async fn register_handler(
             let verification_token = AuthService::generate_verify_token(app_state.cache, data.user.uuid).await
                 .map_err(|e| (e.status(), Json(ApiResponse::err(&e))))?;
 
-            MailService::send_verification(&data.user.email.0, &verification_token.token.to_string())
-                .map_err(|e| (e.status(), Json(ApiResponse::err(&e))))?;
+            let email_to_send = data.user.email.0.clone();
+            let token_to_send = verification_token.token.to_string();
+
+            tokio::spawn(async move {
+                MailService::send_verification(&email_to_send, &token_to_send)
+            });
 
             let updated_jar = create_cookies(jar, data.token_pair).await;
             
