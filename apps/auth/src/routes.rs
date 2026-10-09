@@ -1,4 +1,4 @@
-use axum::extract::State;
+use axum::extract::{Path, State};
 use axum::{Extension, Json};
 use axum::http::{HeaderMap, StatusCode};
 use axum_extra::extract::CookieJar;
@@ -7,9 +7,10 @@ use uuid::Uuid;
 use crate::AppState;
 use crate::errors::AppError;
 use crate::models::db::UserUuid;
-use crate::models::dto::{ ApiResponse, LoginRequest, RegisterRequest, ValidatedJson, VerifyRequest };
+use crate::models::dto::{ ApiResponse, LoginRequest, RegisterRequest, ValidatedJson };
 use crate::models::domain::{ TokenPairPublic, UserPublic };
 use crate::services::auth::AuthService;
+use crate::services::mail::MailService;
 use crate::util::cookies::{create_cookies, remove_cookies};
 
 pub async fn root() -> &'static str {
@@ -28,9 +29,11 @@ pub async fn register_handler(
 ) -> Result<(CookieJar, (StatusCode, Json<ApiResponse<UserPublic>>)), (StatusCode, Json<ApiResponse<()>>)> {
     match AuthService::register(app_state.db, headers, payload).await {
         Ok(data) => {
-            let verification_token = AuthService::generate_verify_token(app_state.cache, data.user.uuid).await;
-            
-            // Do something with the generated verification token (email)
+            let verification_token = AuthService::generate_verify_token(app_state.cache, data.user.uuid).await
+                .map_err(|e| (e.status(), Json(ApiResponse::err(&e))))?;
+
+            MailService::send_verification(&data.user.email.0, &verification_token.token.to_string())
+                .map_err(|e| (e.status(), Json(ApiResponse::err(&e))))?;
 
             let updated_jar = create_cookies(jar, data.token_pair).await;
             
@@ -41,11 +44,10 @@ pub async fn register_handler(
 }
 
 pub async fn verify_handler(
+    Path(token): Path<String>,
     State(app_state): State<AppState>,
-    Extension(user_uuid): Extension<UserUuid>,
-    ValidatedJson(payload): ValidatedJson<VerifyRequest>,
 ) -> Result<(StatusCode, Json<ApiResponse<UserPublic>>), (StatusCode, Json<ApiResponse<()>>)> {
-    match AuthService::verify(app_state.db, app_state.cache, payload, user_uuid).await {
+    match AuthService::verify(app_state.db, app_state.cache, token).await {
         Ok(user) => Ok((StatusCode::OK, Json(ApiResponse::ok("User verified successfully".to_string(), user)))),
         Err(app_error) => Err((app_error.status(), Json(ApiResponse::err(&app_error)))),
     }

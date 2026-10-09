@@ -69,7 +69,7 @@ async fn main() {
         .route("/", get(root))
         .route("/health", get(health_handler))
         .route("/register", post(register_handler))
-        .route("/verify", post(verify_handler))
+        .route("/verify/{*token}", get(verify_handler))
         .route("/login", post(login_handler))
         .route("/logout", post(logout_handler))
         .route("/refresh", post(refresh_handler))

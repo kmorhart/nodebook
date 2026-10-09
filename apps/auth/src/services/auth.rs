@@ -1,11 +1,12 @@
 use std::net::IpAddr;
 use std::str::FromStr;
 use rand_core::{OsRng, RngCore};
+use uuid::Uuid;
 
 use crate::errors::AppError;
 use crate::models::db::{User, UserUuid, VerificationToken};
 use crate::models::domain::{AuthUser, AuthUserPublic, TokenPair, UserIdentifier, UserPublic, UserRegistration};
-use crate::models::dto::{LoginRequest, RegisterRequest, VerifyRequest};
+use crate::models::dto::{LoginRequest, RegisterRequest};
 use crate::repositories::refresh_tokens::{store_refresh_token, use_refresh_token};
 use crate::repositories::user_security_logs::{create_user_security_log, get_user_security_log_from_uuid, update_user_security_log};
 use crate::util::crypto::{hash_password, verify_password};
@@ -76,25 +77,25 @@ impl AuthService {
         })
     }
 
-    pub async fn verify(pool: PgPool, redis_pool: Pool, payload: VerifyRequest, user_uuid: UserUuid) -> Result<UserPublic, AppError> {
+    pub async fn verify(pool: PgPool, redis_pool: Pool, token: String) -> Result<UserPublic, AppError> {
         let mut connection = redis_pool.get().await
             .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
 
         let mut tx = pool.begin().await
             .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
 
-        let key = format!("verification:{}", payload.token);
+        let key = format!("verification:{}", token);
         let result: Option<String> = connection.get(&key).await
             .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
 
-        if result.is_none() || result.unwrap() != user_uuid.to_string() {
+        if result.is_none() {
             return Err(AppError::Unauthorized("auth.invalid_verification_token", None));
         }
 
         let _: () = connection.del(&key).await
             .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
             
-        let user_public = verify_user(&mut *tx, &user_uuid).await?.into();
+        let user_public = verify_user(&mut *tx, &UserUuid(Uuid::parse_str(&result.unwrap()).unwrap())).await?.into();
 
         tx.commit().await
             .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
