@@ -7,7 +7,7 @@ use redis::AsyncCommands;
 use crate::{AppState, errors::AppError, models::{domain::TokenPairPublic, dto::ApiResponse}, services::auth::AuthService, util::{cookies::{create_cookies, remove_cookies}, tokens::verify_access_token}};
 
 
-const PUBLIC_ROUTES: &[&str] = &["/", "/health", "/register", "/login", "/refresh"];
+const PUBLIC_ROUTES: &[&str] = &["/", "/health", "/register", "/verify", "/login", "/refresh"];
 
 pub async fn auth_middleware(
     State(app_state): State<AppState>,
