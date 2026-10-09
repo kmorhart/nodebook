@@ -110,3 +110,28 @@ where
 
     Ok(user)
 }
+
+pub async fn verify_user<'a, E>(executor: E, state: &UserUuid) -> Result<User, AppError>
+where
+    E: sqlx::Executor<'a, Database = sqlx::Postgres>
+{
+    let user = sqlx::query_as::<_, User>(
+        r#"
+        UPDATE users
+        SET is_verified = true, updated_at = NOW()
+        WHERE uuid = $1
+        RETURNING uuid, username, email, password_hash, role, is_active, is_verified, created_at, updated_at
+        "#,
+    )
+        .bind(state)
+        .fetch_one(executor)
+        .await
+        .map_err(|e| {
+            if let sqlx::Error::RowNotFound = e {
+                return AppError::NotFound("user.not_found", Some(e.to_string()));
+            }
+            AppError::Internal("general.internal", Some(e.to_string()))
+        })?;
+
+    Ok(user)
+}

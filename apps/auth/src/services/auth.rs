@@ -1,16 +1,19 @@
 use std::net::IpAddr;
 use std::str::FromStr;
+use rand_core::{OsRng, RngCore};
 
 use crate::errors::AppError;
-use crate::models::db::{User, UserUuid};
+use crate::models::db::{User, UserUuid, VerificationToken};
 use crate::models::domain::{AuthUser, AuthUserPublic, TokenPair, UserIdentifier, UserPublic, UserRegistration};
-use crate::models::dto::{LoginRequest, RegisterRequest};
+use crate::models::dto::{LoginRequest, RegisterRequest, VerifyRequest};
 use crate::repositories::refresh_tokens::{store_refresh_token, use_refresh_token};
 use crate::repositories::user_security_logs::{create_user_security_log, get_user_security_log_from_uuid, update_user_security_log};
 use crate::util::crypto::{hash_password, verify_password};
 use crate::util::tokens::{generate_tokens, verify_refresh_token};
-use crate::repositories::users::{create_user, get_password_hash_from_uuid, get_user_from_uuid, get_uuid_from_identity};
+use crate::repositories::users::{create_user, get_password_hash_from_uuid, get_user_from_uuid, get_uuid_from_identity, verify_user};
 
+use deadpool_redis::{Pool};
+use redis::AsyncCommands;
 use sqlx::PgPool;
 use axum::http::{HeaderMap};
 
@@ -51,6 +54,52 @@ impl AuthService {
         tx.commit().await
             .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
         Ok(auth_user_public)
+    }
+
+    pub async fn generate_verify_token(pool: Pool, user_uuid: UserUuid) -> Result<VerificationToken, AppError> {
+        let mut bytes = [0u8; 16];
+
+        OsRng.fill_bytes(&mut bytes);
+        let token = bytes.iter().map(|b| format!("{:02x}", b)).collect();
+
+
+        let mut connection = pool.get().await
+            .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
+        
+        let _: () = connection.set_ex(format!("verification:{}", token), user_uuid.to_string(), 3600).await
+            .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
+
+        Ok(VerificationToken {
+            token,
+            user_uuid,
+            expires_at: chrono::Utc::now() + chrono::Duration::hours(1),
+        })
+    }
+
+    pub async fn verify(pool: PgPool, redis_pool: Pool, payload: VerifyRequest, user_uuid: UserUuid) -> Result<UserPublic, AppError> {
+        let mut connection = redis_pool.get().await
+            .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
+
+        let mut tx = pool.begin().await
+            .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
+
+        let key = format!("verification:{}", payload.token);
+        let result: Option<String> = connection.get(&key).await
+            .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
+
+        if result.is_none() || result.unwrap() != user_uuid.to_string() {
+            return Err(AppError::Unauthorized("auth.invalid_verification_token", None));
+        }
+
+        let _: () = connection.del(&key).await
+            .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
+            
+        let user_public = verify_user(&mut *tx, &user_uuid).await?.into();
+
+        tx.commit().await
+            .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
+
+        Ok(user_public)
     }
 
     pub async fn login(pool: PgPool, headers: HeaderMap, payload: LoginRequest) -> Result<AuthUserPublic, AppError> {

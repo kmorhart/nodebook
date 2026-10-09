@@ -2,12 +2,12 @@ use axum::extract::State;
 use axum::{Extension, Json};
 use axum::http::{HeaderMap, StatusCode};
 use axum_extra::extract::CookieJar;
-use deadpool_redis::redis::cmd;
+use redis::AsyncCommands;
 use uuid::Uuid;
 use crate::AppState;
 use crate::errors::AppError;
 use crate::models::db::UserUuid;
-use crate::models::dto::{ ApiResponse, LoginRequest, RegisterRequest, ValidatedJson };
+use crate::models::dto::{ ApiResponse, LoginRequest, RegisterRequest, ValidatedJson, VerifyRequest };
 use crate::models::domain::{ TokenPairPublic, UserPublic };
 use crate::services::auth::AuthService;
 use crate::util::cookies::{create_cookies, remove_cookies};
@@ -28,10 +28,25 @@ pub async fn register_handler(
 ) -> Result<(CookieJar, (StatusCode, Json<ApiResponse<UserPublic>>)), (StatusCode, Json<ApiResponse<()>>)> {
     match AuthService::register(app_state.db, headers, payload).await {
         Ok(data) => {
+            let verification_token = AuthService::generate_verify_token(app_state.cache, data.user.uuid).await;
+            
+            // Do something with the generated verification token (email)
+
             let updated_jar = create_cookies(jar, data.token_pair).await;
             
             Ok((updated_jar, (StatusCode::CREATED, Json(ApiResponse::ok("User registered successfully".to_string(), data.user)))))
         },
+        Err(app_error) => Err((app_error.status(), Json(ApiResponse::err(&app_error)))),
+    }
+}
+
+pub async fn verify_handler(
+    State(app_state): State<AppState>,
+    Extension(user_uuid): Extension<UserUuid>,
+    ValidatedJson(payload): ValidatedJson<VerifyRequest>,
+) -> Result<(StatusCode, Json<ApiResponse<UserPublic>>), (StatusCode, Json<ApiResponse<()>>)> {
+    match AuthService::verify(app_state.db, app_state.cache, payload, user_uuid).await {
+        Ok(user) => Ok((StatusCode::OK, Json(ApiResponse::ok("User verified successfully".to_string(), user)))),
         Err(app_error) => Err((app_error.status(), Json(ApiResponse::err(&app_error)))),
     }
 }
@@ -62,12 +77,13 @@ pub async fn logout_handler(
     let mut connection = app_state.cache.get().await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::err(&AppError::Internal("general.internal", Some(e.to_string()))))))?;
 
-    cmd("SET")
-        .arg(&[format!("access_token/{}", jti), "".to_string()])
-        .query_async::<()>(&mut connection)
-        .await.unwrap();
+    let success: bool = connection.set_ex(format!("invalid_token:{}", jti), "", 900).await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::err(&AppError::Internal("general.internal", Some(e.to_string()))))))?;
 
-    Ok((updated_jar, (StatusCode::OK, Json(ApiResponse::ok("User logged out successfully".to_string(), ())))))
+    match success {
+        true => Ok((updated_jar, (StatusCode::OK, Json(ApiResponse::ok("User logged out successfully".to_string(), ()))))),
+        false => Err((StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::err(&AppError::Internal("general.internal", Some("Failed to invalidate access token".to_string())))))),
+    }
 }
 
 pub async fn refresh_handler(

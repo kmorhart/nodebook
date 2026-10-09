@@ -44,6 +44,11 @@ pub struct RegisterRequest {
 }
 
 #[derive(Debug, Clone, Deserialize, Validate)]
+pub struct VerifyRequest {
+    pub token: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Validate)]
 pub struct LoginRequest {
     pub identifier: String,
     pub password: String,
