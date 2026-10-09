@@ -20,7 +20,7 @@ use tower_http::cors::{AllowOrigin, CorsLayer};
 
 
 use crate::middleware::auth_middleware;
-use crate::routes::{ health_handler, login_handler, logout_handler, me_handler, refresh_handler, register_handler, root, session_handler };
+use crate::routes::{ health_handler, login_handler, logout_handler, me_handler, refresh_handler, register_handler, root, session_handler, verify_handler };
 
 #[derive(Clone)]
 pub struct AppState {
@@ -69,6 +69,7 @@ async fn main() {
         .route("/", get(root))
         .route("/health", get(health_handler))
         .route("/register", post(register_handler))
+        .route("/verify", post(verify_handler))
         .route("/login", post(login_handler))
         .route("/logout", post(logout_handler))
         .route("/refresh", post(refresh_handler))

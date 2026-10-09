@@ -1,4 +1,4 @@
-use std::net::IpAddr;
+use std::{net::IpAddr, ops::Deref};
 
 use chrono::{DateTime, Utc}; 
 use sqlx::FromRow;
@@ -9,6 +9,21 @@ use uuid::Uuid;
 #[derive(sqlx::Type, Debug, Clone, Copy, Serialize, Deserialize)]
 #[sqlx(transparent)]
 pub struct UserUuid(pub Uuid);
+
+impl Deref for UserUuid {
+    type Target = Uuid;
+
+    fn deref(&self, ) -> &Self::Target {
+        &self.0
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VerificationToken {
+    pub token: String,
+    pub user_uuid: UserUuid,
+    pub expires_at: DateTime<Utc>,
+}
 
 #[derive(sqlx::Type, Debug, Clone, Serialize, Deserialize)]
 #[sqlx(transparent)]

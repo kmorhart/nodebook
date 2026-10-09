@@ -2,7 +2,7 @@ use axum::{
     Json, body::Body, extract::State, http::{Request, Response, StatusCode}, middleware::Next, response::IntoResponse,
 };
 use axum_extra::extract::{CookieJar};
-use deadpool_redis::redis::cmd;
+use redis::AsyncCommands;
 
 use crate::{AppState, errors::AppError, models::{domain::TokenPairPublic, dto::ApiResponse}, services::auth::AuthService, util::{cookies::{create_cookies, remove_cookies}, tokens::verify_access_token}};
 
@@ -30,13 +30,10 @@ pub async fn auth_middleware(
         Ok(claims) => {
             let mut connection = app_state.cache.get().await
                 .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::err(&AppError::Internal("general.internal", Some(e.to_string()))))))?;
-            let invalid: u8 = cmd("EXISTS")
-                .arg(format!("access_token/{}", claims.jti))
-                .query_async(&mut connection)
-                .await
-                .unwrap();
 
-            if invalid == 1 {
+            let invalid: bool = connection.exists(format!("invalid_token:{}", claims.jti)).await.unwrap();
+
+            if invalid == true {
                 return Err((StatusCode::UNAUTHORIZED, Json(ApiResponse::err(&AppError::Unauthorized("auth.token_invalid", None)))));
             }
 
