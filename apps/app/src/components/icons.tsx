@@ -1,1 +1,27 @@
-export { FilePlus, FileBraces, Save, SavePen, SavePlus, Share2, Undo, Redo, Scissors, ClipboardCopy, ClipboardPaste, SquareDashed, SquareDashedX, X, Trash, ZoomIn, ZoomOut, LayoutFreeform, Spline, Play, MonitorPlay, MonitorPause, Spotlight } from 'lucide-react'
+export {
+    Sun,
+    Moon,
+    FilePlus,
+    FileBraces,
+    Save,
+    SavePen,
+    SavePlus,
+    Share2,
+    Undo,
+    Redo,
+    Scissors,
+    ClipboardCopy,
+    ClipboardPaste,
+    SquareDashed,
+    SquareDashedX,
+    X,
+    Trash,
+    ZoomIn,
+    ZoomOut,
+    LayoutFreeform,
+    Spline,
+    Play,
+    MonitorPlay,
+    MonitorPause,
+    Spotlight
+} from 'lucide-react'

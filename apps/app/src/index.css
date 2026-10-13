@@ -25,15 +25,27 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
+  interpolate-size: allow-keywords;
+
   @media (max-width: 1024px) {
     font-size: 16px;
   }
 }
 
+body {
+  margin: 0;
+  padding: 0;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
 :root[data-theme="dark"] {
   --text: #9ca3af;
   --text-h: #f3f4f6;
-  --bg: #16171d;
+  --bg: #1c1c1c;
   --border: #2e303a;
   --code-bg: #1f2028;
   --accent: #c084fc;

@@ -1,0 +1,127 @@
+.toolbar button {
+    background: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    color: #000;
+}
+
+.toolbar-categories {
+    display: flex;
+    margin: 0.3rem;
+    margin-left: 0.625rem;
+    margin-right: 0.625rem;
+}
+
+.toolbar-category {
+    margin-left: 0.625rem;
+    margin-right: 0.625rem;
+}
+
+.toolbar-category:hover {
+    text-decoration: underline;
+}
+
+.toolbar-pages {
+    display: flex;
+    align-items: flex-start;
+    margin-left: 0.625rem;
+    margin-right: 0.625rem;
+    background: #eee;
+    border-radius: 5px;
+    height: 5.4rem;
+}
+
+.toolbar-page {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+    height: calc(100% - 0.6rem);
+}
+
+.toolbar-group {
+    display: flex;
+    position: relative;
+    flex-direction: row;
+    align-items: stretch;
+    border: none;
+    border-right: 1px solid #bbb;
+    padding-left: 0.3rem;
+    padding-right: 0.3rem;
+    height: 100%;
+}
+
+.toolbar-group p {
+    margin: 0;
+    padding: 0;
+    font-size: 0.6rem;
+    position: absolute;
+    transform: translateX(-50%);
+    left: 50%;
+    bottom: -0.4rem;
+    user-select: none;
+}
+
+.toolbar-function {
+    max-height: 4rem;
+    width: auto;
+    min-width: 2.75rem;
+}
+
+.toolbar-page > :last-child {
+    border: none;
+}
+
+
+.toolbar-function:hover {
+    background: #ddd;
+}
+
+.toolbar-function button {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    flex-direction: column;
+    padding-left: 0.3rem;
+    padding-right: 0.3rem;
+    right: 0.3rem;
+    height: 100%;
+    width: 100%;
+    
+    text-align: center;
+    flex-wrap: wrap;
+}
+
+.toolbar-function svg {
+    width: 100%;
+    aspect-ratio: 1/1;
+    padding-bottom: 0.25rem;
+}
+
+.toolbar-modeToggle {
+    background: transparent;
+    border: none;
+    margin-left: auto;
+    margin-top: 0.3rem;
+    margin-right: 0.3rem;
+}
+
+/* Dark mode */
+
+:root[data-theme="dark"] .toolbar-pages {
+    background: #282828;
+}
+
+:root[data-theme="dark"] .toolbar-page > :not(:last-child) {
+    border-right: 1px solid #777;
+}
+
+:root[data-theme="dark"] .toolbar-function:hover {
+    background: #333;
+}
+
+:root[data-theme="dark"] .toolbar button {
+    color: #fff;
+}
