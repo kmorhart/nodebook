@@ -2,8 +2,11 @@ import { queryOptions } from '@tanstack/react-query';
 import { queryClient } from './queryClient';
 import type { Me } from '../config/types';
 
+
+const authUrl = import.meta.env.VITE_AUTH_URL;
+
 export async function fetchRegister(email: string, username: string, password: string): Promise<Me> {
-  const response = await fetch('http://localhost:7005/register', {
+  const response = await fetch(authUrl + 'register', {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -33,7 +36,7 @@ export const registerMutateOptions = {
 }
 
 export async function fetchLogin(identifier: string, password: string): Promise<Me> {
-  const response = await fetch('http://localhost:7005/login', {
+  const response = await fetch(authUrl + 'login', {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -63,7 +66,7 @@ export const loginMutateOptions = {
 }
 
 export async function fetchSession(): Promise<Me> {
-  const response = await fetch('http://localhost:7005/session', {
+  const response = await fetch(authUrl + 'session', {
     method: 'GET',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -83,7 +86,7 @@ export const sessionQueryOptions = queryOptions({
 })
 
 async function fetchMe(): Promise<Me> {
-  const response = await fetch('http://localhost:7005/me', {
+  const response = await fetch(authUrl + 'me', {
     method: 'GET',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -110,7 +113,7 @@ export const meQueryOptions = queryOptions({
 })
 
 async function fetchLogout() {
-  const response = await fetch('http://localhost:7005/logout', {
+  const response = await fetch(authUrl + 'logout', {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
