@@ -2,16 +2,14 @@ use axum::extract::{Path, State};
 use axum::{Extension, Json};
 use axum::http::{HeaderMap, StatusCode};
 use axum_extra::extract::CookieJar;
-use redis::AsyncCommands;
-use uuid::Uuid;
 use crate::AppState;
 use crate::errors::AppError;
 use crate::models::db::UserUuid;
 use crate::models::dto::{ ApiResponse, LoginRequest, RegisterRequest, ValidatedJson };
-use crate::models::domain::{ TokenPairPublic, UserPublic };
+use crate::models::domain::{ ClaimsPair, TokenPairPublic, UserPublic };
 use crate::services::auth::AuthService;
 use crate::services::mail::MailService;
-use crate::util::cookies::{create_cookies, remove_cookies};
+use crate::util::cookies::{create_cookies};
 
 pub async fn root() -> &'static str {
     "Auth service is running, please specify a route to access the service."
@@ -75,20 +73,12 @@ pub async fn login_handler(
 
 pub async fn logout_handler(
     State(app_state): State<AppState>,
-    jar: CookieJar,
-    Extension(jti): Extension<Uuid>
-) -> Result<(CookieJar, (StatusCode, Json<ApiResponse<()>>)), (StatusCode, Json<ApiResponse<()>>)> {
-    let updated_jar = remove_cookies(jar).await;
-
-    let mut connection = app_state.cache.get().await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::err(&AppError::Internal("general.internal", Some(e.to_string()))))))?;
-
-    let success: bool = connection.set_ex(format!("invalid_token:{}", jti), "", 900).await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::err(&AppError::Internal("general.internal", Some(e.to_string()))))))?;
-
-    match success {
-        true => Ok((updated_jar, (StatusCode::OK, Json(ApiResponse::ok("User logged out successfully".to_string(), ()))))),
-        false => Err((StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::err(&AppError::Internal("general.internal", Some("Failed to invalidate access token".to_string())))))),
+    Extension(claims_pair): Extension<ClaimsPair>
+) -> Result<(StatusCode, Json<ApiResponse<()>>), (StatusCode, Json<ApiResponse<()>>)> {
+    match AuthService::logout(app_state.db, app_state.cache, claims_pair).await {
+        Ok(true) => Ok((StatusCode::OK, Json(ApiResponse::ok("User logged out successfully".to_string(), ())))),
+        Ok(false) => Err((StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::err(&AppError::Internal("general.internal", Some("Failed to invalidate access token".to_string())))))),
+        Err(app_error) => Err((app_error.status(), Json(ApiResponse::err(&app_error)))),
     }
 }
 

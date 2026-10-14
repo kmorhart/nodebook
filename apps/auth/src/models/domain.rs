@@ -35,6 +35,21 @@ pub struct AuthUser {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClaimsPair {
+    pub access_token_claims: Option<Claims>,
+    pub refresh_token_claims: Option<Claims>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Claims {
+    pub jti: Uuid,
+    pub sub: UserUuid,
+    pub exp: usize,
+    pub iat: usize,
+    pub token_type: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TokenPair {
     pub access_token: Token,
     pub refresh_token: Token,

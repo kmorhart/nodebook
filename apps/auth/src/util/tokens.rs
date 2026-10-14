@@ -1,20 +1,10 @@
-use crate::{errors::AppError, models::{db::{UserUuid}, domain::{Token, TokenPair}}};
+use crate::{errors::AppError, models::{db::UserUuid, domain::{Claims, Token, TokenPair}}};
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
-use serde::{Serialize, Deserialize};
 use chrono::{Utc, Duration};
 use uuid::Uuid;
 use std::env;
 
 
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Claims {
-    pub jti: Uuid,
-    pub sub: UserUuid,
-    pub exp: usize,
-    pub iat: usize,
-    pub token_type: String,
-}
 
 pub async fn generate_tokens(user_uuid: UserUuid) -> Result<TokenPair, AppError> {
     let access_token = generate_access_token(&user_uuid)?;

@@ -5,9 +5,9 @@ use uuid::Uuid;
 
 use crate::errors::AppError;
 use crate::models::db::{User, UserUuid, VerificationToken};
-use crate::models::domain::{AuthUser, AuthUserPublic, TokenPair, UserIdentifier, UserPublic, UserRegistration};
+use crate::models::domain::{AuthUser, AuthUserPublic, ClaimsPair, TokenPair, UserIdentifier, UserPublic, UserRegistration};
 use crate::models::dto::{LoginRequest, RegisterRequest};
-use crate::repositories::refresh_tokens::{store_refresh_token, use_refresh_token};
+use crate::repositories::refresh_tokens::{revoke_refresh_token, revoke_refresh_token_special, store_refresh_token, use_refresh_token};
 use crate::repositories::user_security_logs::{create_user_security_log, get_user_security_log_from_uuid, update_user_security_log};
 use crate::util::crypto::{hash_password, verify_password};
 use crate::util::tokens::{generate_tokens, verify_refresh_token};
@@ -21,8 +21,8 @@ use axum::http::{HeaderMap};
 pub struct AuthService;
 
 impl AuthService {
-    pub async fn register(pool: PgPool, _headers: HeaderMap, payload: RegisterRequest) -> Result<AuthUserPublic, AppError> {
-        let mut tx = pool.begin().await
+    pub async fn register(postgres_pool: PgPool, _headers: HeaderMap, payload: RegisterRequest) -> Result<AuthUserPublic, AppError> {
+        let mut tx = postgres_pool.begin().await
             .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
         
         let password = payload.password.clone();
@@ -57,14 +57,15 @@ impl AuthService {
         Ok(auth_user_public)
     }
 
-    pub async fn generate_verify_token(pool: Pool, user_uuid: UserUuid) -> Result<VerificationToken, AppError> {
+    pub async fn generate_verify_token(redis_pool: Pool, user_uuid: UserUuid) -> Result<VerificationToken, AppError> {
         let mut bytes = [0u8; 16];
 
         OsRng.fill_bytes(&mut bytes);
         let token = bytes.iter().map(|b| format!("{:02x}", b)).collect();
 
 
-        let mut connection = pool.get().await
+
+        let mut connection = redis_pool.get().await
             .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
         
         let _: () = connection.set_ex(format!("verification:{}", token), user_uuid.to_string(), 3600).await
@@ -77,11 +78,11 @@ impl AuthService {
         })
     }
 
-    pub async fn verify(pool: PgPool, redis_pool: Pool, token: String) -> Result<UserPublic, AppError> {
-        let mut connection = redis_pool.get().await
+    pub async fn verify(postgres_pool: PgPool, redis_pool: Pool, token: String) -> Result<UserPublic, AppError> {
+        let mut tx = postgres_pool.begin().await
             .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
-
-        let mut tx = pool.begin().await
+        
+        let mut connection = redis_pool.get().await
             .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
 
         let key = format!("verification:{}", token);
@@ -103,8 +104,8 @@ impl AuthService {
         Ok(user_public)
     }
 
-    pub async fn login(pool: PgPool, headers: HeaderMap, payload: LoginRequest) -> Result<AuthUserPublic, AppError> {
-        let mut tx = pool.begin().await
+    pub async fn login(postgres_pool: PgPool, headers: HeaderMap, payload: LoginRequest) -> Result<AuthUserPublic, AppError> {
+        let mut tx = postgres_pool.begin().await
             .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
 
         let user_identity = UserIdentifier (payload.identifier.clone());
@@ -193,8 +194,8 @@ impl AuthService {
         Ok(auth_user_public)
     }
 
-    pub async fn refresh(pool: PgPool, headers: HeaderMap) -> Result<TokenPair, AppError> {
-        let mut tx = pool.begin().await
+    pub async fn refresh(postgres_pool: PgPool, headers: HeaderMap) -> Result<TokenPair, AppError> {
+        let mut tx = postgres_pool.begin().await
             .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
 
         let refresh_token = headers.get("cookie")
@@ -230,8 +231,8 @@ impl AuthService {
         Ok(token_pair)
     }
 
-    pub async fn me(pool: PgPool, _headers: HeaderMap, user_uuid: UserUuid) -> Result<UserPublic, AppError> {
-        let mut tx = pool.begin().await
+    pub async fn me(postgres_pool: PgPool, _headers: HeaderMap, user_uuid: UserUuid) -> Result<UserPublic, AppError> {
+        let mut tx = postgres_pool.begin().await
             .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
 
         let user: User = get_user_from_uuid(&mut *tx, &user_uuid)
@@ -241,5 +242,38 @@ impl AuthService {
             .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
 
         Ok(user.into())
+    }
+
+    pub async fn logout(postgres_pool: PgPool, redis_pool: Pool, claims_pair: ClaimsPair) -> Result<bool, AppError> {
+        let mut tx = postgres_pool.begin().await
+            .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
+
+        if claims_pair.refresh_token_claims.is_some() {
+            revoke_refresh_token(&mut *tx, claims_pair.refresh_token_claims.as_ref().unwrap().jti)
+                .await?;
+        }
+
+        if claims_pair.access_token_claims.is_some() {
+            let mut connection = redis_pool.get().await
+                .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
+    
+
+            let success: bool = connection.set_ex(format!("invalid_token:{}", claims_pair.access_token_claims.as_ref().unwrap().jti), "", 900).await
+                .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
+
+            if !success {
+                return Err(AppError::Internal("general.internal", Some("Failed to invalidate access token".to_string())));
+            }
+        }
+
+        if claims_pair.refresh_token_claims.is_none() && claims_pair.access_token_claims.is_some() {
+            revoke_refresh_token_special(&mut *tx, claims_pair)
+                .await?;
+        }
+
+        tx.commit().await
+            .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
+
+        Ok(true)
     }
 }
