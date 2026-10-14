@@ -65,6 +65,20 @@ export const loginMutateOptions = {
     fetchLogin(credentials.identifier, credentials.password),
 }
 
+export async function fetchVerify(token: string): Promise<boolean> {
+  const response = await fetch(authUrl + 'verify/' + token, {
+    method: 'POST',
+  })
+  
+  if (!response.ok) return false
+
+  return true
+}
+
+export const verifyMutationOptions = {
+  mutationFn: (token: string) => fetchVerify(token),
+}
+
 export async function fetchSession(): Promise<Me> {
   const response = await fetch(authUrl + 'session', {
     method: 'GET',
