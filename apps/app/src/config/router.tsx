@@ -5,7 +5,7 @@ import { verifySession } from '../utils/middleware'
 import { logout } from '../utils/loaders'
 import Login from '../pages/Login'
 import Register from '../pages/Register'
-import Canvas from '../pages/Canvas'
+import Canvas from '../components/Canvas'
 
 
 export let router = createBrowserRouter([

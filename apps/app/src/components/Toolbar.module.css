@@ -1,21 +1,28 @@
+.toolbar {
+    display: contents;
+    user-select: none;
+}
+
 .toolbar button {
     background: transparent;
     border: none;
     outline: none;
     cursor: pointer;
-    color: #000;
+    color: var(--text);
 }
 
 .toolbar-categories {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+    z-index: 1;
+    width: min-content;
     display: flex;
     margin: 0.3rem;
     margin-left: 0.625rem;
-    margin-right: 0.625rem;
 }
 
 .toolbar-category {
-    margin-left: 0.625rem;
-    margin-right: 0.625rem;
+    margin-left: 1.3rem;
 }
 
 .toolbar-category:hover {
@@ -23,13 +30,18 @@
 }
 
 .toolbar-pages {
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
+    width: min-content;
     display: flex;
     align-items: flex-start;
     margin-left: 0.625rem;
     margin-right: 0.625rem;
-    background: #eee;
+    margin-bottom: 0.625rem;
+    background: var(--ui-bg);
     border-radius: 5px;
     height: 5.4rem;
+    box-shadow: 0 0 0 10px var(--bg); 
 }
 
 .toolbar-page {
@@ -47,7 +59,7 @@
     flex-direction: row;
     align-items: stretch;
     border: none;
-    border-right: 1px solid #bbb;
+    border-right: 1px solid var(--ui-seperator);
     padding-left: 0.3rem;
     padding-right: 0.3rem;
     height: 100%;
@@ -62,6 +74,7 @@
     left: 50%;
     bottom: -0.4rem;
     user-select: none;
+    color: var(--text-alt);
 }
 
 .toolbar-function {
@@ -76,7 +89,7 @@
 
 
 .toolbar-function:hover {
-    background: #ddd;
+    background: var(--ui-hover);
 }
 
 .toolbar-function button {
@@ -98,30 +111,4 @@
     width: 100%;
     aspect-ratio: 1/1;
     padding-bottom: 0.25rem;
-}
-
-.toolbar-modeToggle {
-    background: transparent;
-    border: none;
-    margin-left: auto;
-    margin-top: 0.3rem;
-    margin-right: 0.3rem;
-}
-
-/* Dark mode */
-
-:root[data-theme="dark"] .toolbar-pages {
-    background: #282828;
-}
-
-:root[data-theme="dark"] .toolbar-page > :not(:last-child) {
-    border-right: 1px solid #777;
-}
-
-:root[data-theme="dark"] .toolbar-function:hover {
-    background: #333;
-}
-
-:root[data-theme="dark"] .toolbar button {
-    color: #fff;
 }

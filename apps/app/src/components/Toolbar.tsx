@@ -3,7 +3,6 @@ import { useState, useMemo, Fragment } from 'react'
 import { TOOLBAR_CONFIG } from '../config/toolbarConfig'
 import { useConfig } from '../config/config'
 import type { ToolbarState } from '../config/types'
-import * as Icons from '../components/icons'
 
 function initToolbarState(): ToolbarState {
     const state: ToolbarState = {}
@@ -19,7 +18,7 @@ function initToolbarState(): ToolbarState {
 }
 
 export default function Toolbar() {
-    const { config, setToolbarCategory, toggleDarkMode } = useConfig();
+    const { config, setToolbarCategory } = useConfig();
     const [toolbarState, setToolbarState] = useState<ToolbarState>(initToolbarState)
 
     return (
@@ -55,11 +54,6 @@ export default function Toolbar() {
                         </div> ) }, [config, toolbarState])}
                     </Fragment>
                 ))}
-                <div className={styles['toolbar-modeToggle']}>
-                    <button onClick={() => toggleDarkMode()}>
-                        {config.darkMode ? <Icons.Sun color="#fff"/> : <Icons.Moon color="#000"/>}
-                    </button>
-                </div>
                 
             </div>
         </header>
