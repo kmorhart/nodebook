@@ -34,7 +34,7 @@ impl MailService {
             .to(to_mailbox)
             .subject("Please verify your email")
             .header(ContentType::TEXT_PLAIN)
-            .body("Please verify your email by clicking the following link: ".to_string() + &public_url + "/verify/" + token)
+            .body("Please verify your email by clicking the following link: ".to_string() + &public_url + "verify/" + token)
             .map_err(|e| AppError::Internal("Failed to build email", Some(e.to_string())))?;
 
         let mailer = SmtpTransport::relay(&smtp_host)
