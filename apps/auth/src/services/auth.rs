@@ -120,7 +120,6 @@ impl AuthService {
             user_security_log.total_failed_login_attempts += 1;
             user_security_log.recent_failed_login_attempts += 1;
             user_security_log.lockout_until = Some(chrono::Utc::now() + chrono::Duration::minutes(15));
-            user_security_log.total_failed_login_attempts += 1;
             user_security_log.last_failed_login_at = Some(chrono::Utc::now());
             user_security_log.last_failed_login_ip = IpAddr::from_str(&headers.get("x-forwarded-for").and_then(|v| v.to_str().ok()).map(|s| s.to_string()).unwrap_or_else(|| "0.0.0.0".into())).ok();
             user_security_log.last_failed_login_user_agent = headers.get("user-agent").and_then(|v| v.to_str().ok()).map(|s| s.to_string());
