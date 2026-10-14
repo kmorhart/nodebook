@@ -1,5 +1,5 @@
 use axum::{
-    Json, body::Body, extract::State, http::{Request, Response, StatusCode}, middleware::Next, response::IntoResponse,
+    Json, body::Body, extract::{MatchedPath, State}, http::{Request, Response, StatusCode}, middleware::Next, response::IntoResponse,
 };
 use axum_extra::extract::{CookieJar};
 use redis::AsyncCommands;
@@ -7,7 +7,7 @@ use redis::AsyncCommands;
 use crate::{AppState, errors::AppError, models::{domain::{ClaimsPair, TokenPairPublic}, dto::ApiResponse}, services::auth::AuthService, util::{cookies::{create_cookies, remove_cookies}, tokens::{verify_access_token, verify_refresh_token}}};
 
 
-const PUBLIC_ROUTES: &[&str] = &["/", "/health", "/register", "/verify", "/login", "/refresh"];
+const PUBLIC_ROUTES: &[&str] = &["/", "/health", "/register", "/verify/{*token}", "/login", "/refresh"];
 
 pub async fn auth_middleware(
     State(app_state): State<AppState>,
@@ -15,9 +15,10 @@ pub async fn auth_middleware(
     mut request: Request<Body>,
     next: Next
 ) -> Result<Response<Body>, (StatusCode, Json<ApiResponse<()>>)> {
-    let path = request.uri().path();
-
-    if PUBLIC_ROUTES.iter().any(|r| *r == path) {
+    let matched_path = request.extensions().get::<MatchedPath>().unwrap();
+    let route_pattern = matched_path.as_str();
+    
+    if PUBLIC_ROUTES.iter().any(|r| *r == route_pattern) {
         return Ok(next.run(request).await);
     }
 
@@ -36,7 +37,7 @@ pub async fn auth_middleware(
 
     if access_token_claims.is_none() && refresh_token_claims.is_none() {
         return Err((StatusCode::UNAUTHORIZED, Json(ApiResponse::err(&AppError::Unauthorized("auth.token_missing", None)))));
-    } else if path == "/logout" {
+    } else if route_pattern == "/logout" {
         let updated_jar = remove_cookies(jar).await;
 
         request.extensions_mut().insert(ClaimsPair {
