@@ -95,8 +95,18 @@ impl AuthService {
 
         let _: () = connection.del(&key).await
             .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;
+
+        let uuid = UserUuid(Uuid::parse_str(&result.unwrap()).unwrap());
             
-        let user_public = verify_user(&mut *tx, &UserUuid(Uuid::parse_str(&result.unwrap()).unwrap())).await?.into();
+        let user_public = verify_user(&mut *tx, &uuid).await?.into();
+
+        let mut user_security_log = get_user_security_log_from_uuid(&mut *tx, &uuid)
+            .await?;
+
+        user_security_log.email_verified_at = Some(chrono::Utc::now());
+
+        update_user_security_log(&mut *tx, &user_security_log)
+            .await?;
 
         tx.commit().await
             .map_err(|e| AppError::Internal("general.internal", Some(e.to_string())))?;

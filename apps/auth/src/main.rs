@@ -12,11 +12,11 @@ use axum::http::{Method, header};
 use axum::middleware::from_fn_with_state;
 use deadpool_redis::{Config, Pool as RedisPool, Runtime};
 use sqlx::postgres::PgPoolOptions;
-use axum::{ Router, http };
+use axum::{Router};
 use axum::routing::{ get, post };
 use sqlx::PgPool;
 use tokio::net::TcpListener;
-use tower_http::cors::{AllowOrigin, CorsLayer};
+use tower_http::cors::{CorsLayer};
 
 
 use crate::middleware::auth_middleware;
@@ -53,12 +53,12 @@ async fn main() {
         .await
         .expect("Failed to run migrations");
 
-    let frontend_origin = "http://localhost:7004"
-        .parse::<http::HeaderValue>()
-        .unwrap();
+    // let frontend_origin = "http://localhost:7004"
+    //     .parse::<http::HeaderValue>()
+    //     .unwrap();
 
     let cors = CorsLayer::new()
-        .allow_origin(AllowOrigin::exact(frontend_origin))
+        // .allow_origin(AllowOrigin::exact(frontend_origin))
         // .allow_origin(AllowOrigin::any())
         .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE, Method::OPTIONS])
         .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION])
