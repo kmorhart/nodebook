@@ -6,7 +6,7 @@ const ConfigContext = createContext<ConfigContextValue | undefined>(undefined);
 const prefersDarkMode = (window.matchMedia('(prefers-color-scheme: dark)')).matches;
 
 const STORAGE_KEY = 'config';
-const DEFAULT_CONFIG: Config = { darkMode: prefersDarkMode, toolbarCategory: 'file' };
+const DEFAULT_CONFIG: Config = { darkMode: prefersDarkMode, sidebarOpen: true, toolbarCategory: 'file' };
 
 function loadConfig(): Config {
     
@@ -40,11 +40,14 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
     const setToolbarCategory = (category: string) =>
         setConfig((prev) => ({ ...prev, toolbarCategory: category }));
 
+    const toggleSidebar = () =>
+        setConfig((prev) => ({ ...prev, sidebarOpen: !prev.sidebarOpen }));
+
     const updateConfig = (partial: Partial<Config>) =>
         setConfig((prev) => ({ ...prev, ...partial }));
 
     return (
-        <ConfigContext.Provider value={{ config, toggleDarkMode, setToolbarCategory, updateConfig }}>
+        <ConfigContext.Provider value={{ config, toggleDarkMode, toggleSidebar, setToolbarCategory, updateConfig }}>
             {children}
         </ConfigContext.Provider>
     );

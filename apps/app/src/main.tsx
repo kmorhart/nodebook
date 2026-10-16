@@ -6,6 +6,7 @@ import { router } from './config/router.tsx'
 import './index.css'
 import { queryClient } from './query/queryClient.ts'
 import { ConfigProvider } from './config/config.tsx'
+import { LucideProvider } from 'lucide-react'
 
 const savedTheme = localStorage.getItem('config') ? (JSON.parse(localStorage.getItem('config')!).darkMode ? 'dark' : 'light') : 'dark';
 
@@ -15,7 +16,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ConfigProvider>
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+        <LucideProvider color={savedTheme === 'dark' ? "#fff" : "#000"} strokeWidth={1.5} size={20}>
+          <RouterProvider router={router} />
+        </LucideProvider>
       </QueryClientProvider>
     </ConfigProvider>
   </StrictMode>

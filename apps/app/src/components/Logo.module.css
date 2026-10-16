@@ -1,0 +1,8 @@
+.logo {
+    height: 18px;
+    padding-left: 0.625rem;
+    grid-row: 1 / 2;
+    grid-column: 1 / 2;
+    place-self: center;
+    transition: width 0.2s ease-in-out;
+}

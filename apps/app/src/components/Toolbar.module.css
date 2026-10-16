@@ -14,15 +14,15 @@
 .toolbar-categories {
     grid-column: 2 / 3;
     grid-row: 1 / 2;
-    z-index: 1;
+    z-index: 2;
     width: min-content;
     display: flex;
     margin: 0.3rem;
-    margin-left: 0.625rem;
+    margin-left: 0.95rem;
 }
 
 .toolbar-category {
-    margin-left: 1.3rem;
+    margin-right: 1.3rem;
 }
 
 .toolbar-category:hover {
@@ -32,16 +32,16 @@
 .toolbar-pages {
     grid-column: 2 / 3;
     grid-row: 2 / 3;
+    z-index: 1;
     width: min-content;
     display: flex;
     align-items: flex-start;
-    margin-left: 0.625rem;
-    margin-right: 0.625rem;
-    margin-bottom: 0.625rem;
+    margin: 0.625rem;
+    margin-top: 0rem;
     background: var(--ui-bg);
     border-radius: 5px;
     height: 5.4rem;
-    box-shadow: 0 0 0 10px var(--bg); 
+    box-shadow: 0 0 20px 10px var(--bg); 
 }
 
 .toolbar-page {
@@ -81,6 +81,7 @@
     max-height: 4rem;
     width: auto;
     min-width: 2.75rem;
+    border-radius: 3px;
 }
 
 .toolbar-page > :last-child {
@@ -111,4 +112,11 @@
     width: 100%;
     aspect-ratio: 1/1;
     padding-bottom: 0.25rem;
+}
+
+.toolbar-modeToggle {
+    position: absolute;
+    z-index: 2;
+    margin-left: auto;
+    right: 0.3rem;
 }

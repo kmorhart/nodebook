@@ -1,0 +1,51 @@
+.prompter {
+    grid-row: 3 / 4;
+    grid-column: 2 / 3;
+    z-index: 1;
+    background: var(--ui-bg);
+    display: flex;
+    align-items: flex-start;
+    width: max-content;
+    height: min-content;
+    margin: 0.625rem;
+    border-radius: 5px;
+    box-shadow: 0 0 20px 10px var(--bg); 
+    transition: min-width 0.2s ease-in-out;
+}
+
+.prompter:hover {
+    min-width: 20rem;
+}
+
+.prompt {
+    field-sizing: content;
+    resize: none;
+    width: 100%;
+    max-width: 30rem;
+    max-height: 10rem;
+    background: transparent;
+    border: none;
+    font-size: 1rem;
+    font-family: var(--sans);
+    min-width: 10rem;
+    color: var(--text);
+    margin: 0.5rem;
+}
+
+.prompt:focus {
+    outline: none;
+}
+
+.prompt-button {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0.555rem;
+    color: var(--text);
+    border-radius: 5px;
+    height: min-content;
+}
+
+.prompt-button:hover {
+    background-color: var(--ui-hover);
+}

@@ -23,5 +23,11 @@ export {
     Play,
     MonitorPlay,
     MonitorPause,
-    Spotlight
+    Spotlight,
+    PanelLeft,
+    Settings,
+    Send,
+    Plus,
+    LogOut,
+    User,
 } from 'lucide-react'

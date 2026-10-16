@@ -28,16 +28,26 @@
   }
 }
 
-body {
+html, body {
   margin: 0;
   padding: 0;
-  height: 100vh;
-  overflow: hidden;
+  width: 100%;
+  height: 100%;
 }
 
 * {
   margin: 0;
   padding: 0;
+  transition: background-color 0.1s ease-in-out, color 0.1s ease-in-out, box-shadow 0.1s ease-in-out, border-color 0.1s ease-in-out;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+.lucide {
+  stroke: #000;
 }
 
 :root[data-theme="dark"] {
@@ -48,4 +58,8 @@ body {
   --ui-bg: #282828;
   --ui-hover: #333;
   --ui-seperator: #777;
+}
+
+:root[data-theme="dark"] .lucide {
+  stroke: #fff;
 }

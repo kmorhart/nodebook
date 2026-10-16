@@ -1,8 +1,10 @@
 .layout {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
     display: grid;
-    grid-template-rows: auto 1fr;
-    grid-template-columns: 260px 1fr;
+    grid-template-rows: min-content 1fr min-content;
+    grid-template-columns: auto 1fr;
     grid-auto-flow: dense;
-    width: 100vw;
-    height: 100vh;
 }
