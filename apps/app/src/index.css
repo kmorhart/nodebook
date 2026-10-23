@@ -22,10 +22,6 @@
   -moz-osx-font-smoothing: grayscale;
 
   interpolate-size: allow-keywords;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
 html, body {
