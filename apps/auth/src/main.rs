@@ -65,7 +65,7 @@ async fn main() {
         .allow_credentials(true);
 
 
-    let app = Router::new()
+    let public = Router::new()
         .route("/", get(root))
         .route("/health", get(health_handler))
         .route("/register", post(register_handler))
@@ -77,12 +77,23 @@ async fn main() {
         .route("/session", get(session_handler))
         .layer(from_fn_with_state(app_state.clone(), auth_middleware))
         .layer(cors)
-        .with_state(app_state);
+        .with_state(app_state.clone());
 
+    let internal = Router::new()
+        .route("/internal/authenticate", post(|| async { "success" }))
+        .layer(from_fn_with_state(app_state.clone(), auth_middleware))
+        .with_state(app_state.clone());
 
-    let listener: TcpListener = tokio::net::TcpListener::bind("0.0.0.0:7005").await.unwrap();
+    let public_listener: TcpListener = TcpListener::bind("0.0.0.0:7005").await.unwrap();
+    let internal_listener: TcpListener = TcpListener::bind("0.0.0.0:8005").await.unwrap();
+
     println!("Auth service running on http://127.0.0.1:7005");
-    axum::serve(listener, app.into_make_service())
-        .await
-        .unwrap();
+    println!("Internal auth service running on http://127.0.0.1:8005");
+
+    let public_server = axum::serve(public_listener, public.into_make_service());
+    let internal_server = axum::serve(internal_listener, internal.into_make_service());
+
+    let (public_result, internal_result) = tokio::join!(public_server, internal_server);
+    public_result.unwrap();
+    internal_result.unwrap();
 }
