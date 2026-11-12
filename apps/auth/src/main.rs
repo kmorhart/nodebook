@@ -8,7 +8,7 @@ mod middleware;
 
 use std::env;
 use std::time::Duration;
-use axum::http::{Method, header};
+use axum::http::{self, Method, header};
 use axum::middleware::from_fn_with_state;
 use deadpool_redis::{Config, Pool as RedisPool, Runtime};
 use sqlx::postgres::PgPoolOptions;
@@ -16,7 +16,7 @@ use axum::{Router};
 use axum::routing::{ get, post };
 use sqlx::PgPool;
 use tokio::net::TcpListener;
-use tower_http::cors::{CorsLayer};
+use tower_http::cors::{AllowOrigin, CorsLayer};
 
 
 use crate::middleware::auth_middleware;
@@ -26,6 +26,7 @@ use crate::routes::{ health_handler, login_handler, logout_handler, me_handler, 
 pub struct AppState {
     pub db: PgPool,
     pub cache: RedisPool,
+    pub http_client: reqwest::Client,
 }
 
 #[tokio::main]
@@ -46,6 +47,7 @@ async fn main() {
     let app_state = AppState {
         db: postgres_pool,
         cache: redis_pool,
+        http_client: reqwest::Client::new(),
     };
 
     sqlx::migrate!("./migrations")
@@ -53,12 +55,12 @@ async fn main() {
         .await
         .expect("Failed to run migrations");
 
-    // let frontend_origin = "http://localhost:7004"
-    //     .parse::<http::HeaderValue>()
-    //     .unwrap();
+    let frontend_origin = "http://localhost:7004"
+        .parse::<http::HeaderValue>()
+        .unwrap();
 
     let cors = CorsLayer::new()
-        // .allow_origin(AllowOrigin::exact(frontend_origin))
+        .allow_origin(AllowOrigin::exact(frontend_origin))
         // .allow_origin(AllowOrigin::any())
         .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE, Method::OPTIONS])
         .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION])

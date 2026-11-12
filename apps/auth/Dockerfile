@@ -10,7 +10,8 @@ WORKDIR /app
 COPY . .
 
 RUN --mount=type=cache,target=/sccache \
-    --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
     cargo build --release
 
 #runtime stage

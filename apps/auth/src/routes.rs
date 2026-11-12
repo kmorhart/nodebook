@@ -1,7 +1,9 @@
+use std::env;
 use axum::extract::{Path, State};
 use axum::{Extension, Json};
 use axum::http::{HeaderMap, StatusCode};
 use axum_extra::extract::CookieJar;
+
 use crate::AppState;
 use crate::errors::AppError;
 use crate::models::db::UserUuid;
@@ -36,6 +38,22 @@ pub async fn register_handler(
             tokio::spawn(async move {
                 MailService::send_verification(&email_to_send, &token_to_send)
             });
+
+            let object = serde_json::json!({
+                "uuid": data.user.uuid,
+                "username": data.user.username,
+            });
+
+            let user_api_url = env::var("USER_API_URL").expect("USER_API_URL must be set");
+
+            let res = app_state.http_client.post(&format!("{}internal/create_user", user_api_url))
+                .json(&object)
+                .send()
+                .await
+                .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::err(&AppError::Internal("Could not create user profile", Some(e.to_string()))))))?;
+
+            res.error_for_status()
+                .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiResponse::err(&AppError::Internal("Could not create user profile", Some(e.to_string()))))))?;
 
             let updated_jar = create_cookies(jar, data.token_pair).await;
             
