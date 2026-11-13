@@ -18,6 +18,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "7005:7005"
+      - "8005:8005"
     env_file:
       - ./apps/auth/.env.local
     restart: always
@@ -32,6 +33,7 @@ services:
         condition: service_healthy
       auth_cache:
         condition: service_healthy
+
   auth_cache:
     image: redis:7.4-alpine
     container_name: auth_cache
@@ -48,6 +50,7 @@ services:
       timeout: 3s
       retries: 5
       start_period: 2s
+
   auth_db:
     image: postgres:18
     container_name: auth_db
@@ -65,8 +68,49 @@ services:
       retries: 10
       start_period: 5s
 
+  user:
+    container_name: user
+    build:
+      context: ./apps/user/
+      dockerfile: Dockerfile
+    ports:
+      - "7008:7008"
+      - "8008:8008"
+    env_file:
+      - ./apps/user/.env.local
+    restart: always
+#    healthcheck:
+#      test: ["CMD-SHELL", "curl -sf http://localhost:8008/health | grep -q 'running' || exit 1"]
+#      interval: 5s
+#      timeout: 3s
+#      retries: 3
+#      start_period: 1s
+    depends_on:
+      user_db:
+        condition: service_healthy
+      auth:
+        condition: service_healthy
+  user_db:
+    image: postgres:18
+    container_name: user_db
+    env_file:
+      - ./apps/user/.env.local
+    restart: always
+    ports:
+      - "7009:5432"
+    volumes:
+      - user_postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
 volumes:
   auth_postgres:
     driver: local
   auth_redis:
+    driver: local
+  user_postgres:
     driver: local
